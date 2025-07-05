@@ -7,7 +7,7 @@ summary: "RSpecを用いて、テストに関する以下の考え方を学び�
 \n
 [対象読者]\n
 RSpec•自動テスト初学者\n
-(前半はRspecを知らなくても問題ない内容です。)"
+(chapter1とchapter2はRspecを知らなくても問題ない内容です。)"
 topics: ["Ruby", "RSpec", "初心者向け", "テスト", "Rails"] # トピック（5つまで）
 published: true # falseだと下書き
 allow_override: true

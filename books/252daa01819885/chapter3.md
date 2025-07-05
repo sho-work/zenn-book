@@ -9,6 +9,57 @@ title: "PlainなRubyで動かすRSpec"
 まずはPlainなRubyで書いたロジックに対してテストコードを書いて、
 その次にRuby on Railsで書いたアプリケーションコードのロジックに対してテストを書いていきます。
 
+## 前提条件
+- Rubyが使えるようになっていること
+- Rspecがインストールされていること
+
+:::details Rspecのインストール
+Rubyのインストールは以下のサイト等を参考に行ってください。
+https://www.ruby-lang.org/ja/documentation/installation/
+
+### 1. bundlerをインストールする
+```bash
+$ gem install bundler
+```
+
+### 2. 作業用のディレクトリを作成して移動する
+以下の例では作業用のディレクトリをplain_ruby_rspecとしています。
+```bash
+$ mkdir plain_ruby_rspec
+$ cd plain_ruby_rspec
+```
+
+### 3. bundler を初期化してrspecをインストールする
+以下のコマンドを実行してください。Gemfileが生成されます。
+```bash
+$ bundle init
+```
+次に、以下のようにGemfileを編集します。
+```diff
+# frozen_string_literal: true
+
+source "https://rubygems.org"
+
+- # gem "rails"
++ gem "rspec"
+```
+
+その後に以下のコマンドを実行します。
+```bash
+$ bundle install
+```
+
+### 4. rspecを初期化する
+```bash
+$ bundle exec rspec --init
+```
+
+参考文献
+https://qiita.com/takaesu_ug/items/db44b81bdddf6ed0e9f5
+https://techtechmedia.com/ruby-setup-rspec/
+:::
+
+
 ## describe/context/itの使い方
 
 - describeにはテストの対象を書きます。
