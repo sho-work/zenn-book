@@ -137,7 +137,19 @@ end
 - `trait :published`: publishedがtrueのブログを作成するためのtraitです。
 - `trait :unpublished`: publishedがfalseのブログを作成するためのtraitです。
 
-## 何を検証するべきか？
+## 実際にBlogモデルのModels specを書いてみよう！
+
+### 1. テスト対象を決める
+Blogモデルのテストでは、大きく分けて以下のテスト対象があると思います。
+
+- Validations（バリデーション）
+  - `validates :title, presence: true`/`validates :content, presence: true`の部分
+- Scopes（スコープ）
+  - `scope :published`/`scope :unpublished`の部分。
+- Class Methods（クラスメソッド）
+  - `def self.filter_by_title`/`def self.filter_by_status`
+
+### 2. 何を検証するべきかを考える
 
 chapter2で説明したように、テストコードでは以下の2つの観点から検証を行います。
 
@@ -146,22 +158,203 @@ chapter2で説明したように、テストコードでは以下の2つの観�
 
 この観点をBlogモデルのspecにも当てはめると、以下のようなことを検証するといいでしょう。
 
-### バリデーションのテスト
+#### Validations（バリデーション）
 - **アウトプットのテスト**: `valid?`メソッドの返り値（boolean）の検証
 - **副作用の検証**: `blog.errors`に格納されたバリデーションエラーの検証(`blog.errors`という状態を持つものに対して副作用を与えていると言える。)
 
-### スコープのテスト
+#### Scopes（スコープ）
 - **アウトプットのテスト**: スコープメソッドの返り値（ActiveRecord::Relation）の検証
 - **副作用の検証**: 副作用は発生していないのでなし。
 
-### クラスメソッドのテスト
+#### Class Methods（クラスメソッド）
 - **アウトプットのテスト**: メソッドの返り値の検証
 - **副作用の検証**: 副作用は発生していないのでなし。
 
-## BlogのModels specを書いてみよう！
+### 3. 各テスト対象のdescribeとcontextの具体例
 
-以下はBlogモデルのspec例です。
-コード例の後に解説します。
+いきなりテストを書くとわかりづらいので、各テスト対象について`describe`と`context`の具体例を示して説明していきます。
+
+#### Validations（バリデーション）の例
+
+```ruby
+RSpec.describe Blog, type: :model do
+  describe 'validations' do
+    context 'when title is blank' do
+      # ここにテストを書く
+    end
+
+    context 'when content is blank' do
+      # ここにテストを書く
+    end
+
+    context 'when all attributes are valid' do
+      # ここにテストを書く
+    end
+  end
+end
+```
+
+- `describe 'validations'`: バリデーションに関するテストをグループ化
+- `context 'when title is blank'`: タイトルが空の場合のテストケース
+- `context 'when content is blank'`: コンテンツが空の場合のテストケース
+- `context 'when all attributes are valid'`: 全ての属性が有効な場合のテストケース
+
+#### Scopes（スコープ）の例
+
+```ruby
+RSpec.describe Blog, type: :model do
+  describe '.published' do
+    # ここにテストを書く
+  end
+
+  describe '.unpublished' do
+    # ここにテストを書く
+  end
+end
+```
+
+- `describe '.published'`: publishedスコープに関するテストをグループ化
+- `describe '.unpublished'`: unpublishedスコープに関するテストをグループ化
+
+#### Class Methods（クラスメソッド）の例
+
+```ruby
+RSpec.describe Blog, type: :model do
+  describe '.filter_by_title' do
+    context 'when title is provided' do
+      # ここにテストを書く
+    end
+
+    context 'when title is blank' do
+      # ここにテストを書く
+    end
+  end
+
+  describe '.filter_by_status' do
+    context 'when status is "published"' do
+      # ここにテストを書く
+    end
+
+    context 'when status is "unpublished"' do
+      # ここにテストを書く
+    end
+
+    context 'when status is invalid' do
+      # ここにテストを書く
+    end
+  end
+end
+```
+
+- `describe '.filter_by_title'`: filter_by_titleメソッドに関するテストをグループ化
+- `describe '.filter_by_status'`: filter_by_statusメソッドに関するテストをグループ化
+- 各メソッド内で`context`を使って、異なる入力パターンを分類
+
+### 4. 各テスト対象のitブロックの具体例
+
+各テスト対象について、`it`ブロックの具体例とAAAパターンの説明を示します。
+
+#### Validations（バリデーション）の例
+
+```ruby
+RSpec.describe Blog, type: :model do
+  describe 'validations' do
+    context 'when title is blank' do
+      # Arrange（準備）
+      let(:blog) { build(:blog, title: nil) }
+
+      it 'is invalid' do
+        # Act（実行）
+        is_valid = blog.valid?
+
+        # Assert（検証）
+        expect(is_valid).to be false
+        expect(blog.errors[:title]).to include("can't be blank")
+      end
+    end
+  end
+end
+```
+
+**AAAパターンの説明**
+- **Arrange（準備）**: `let(:blog) { build(:blog, title: nil) }`
+  - タイトルが空のBlogオブジェクトを作成
+  - `build`を使用してデータベースには保存しない
+- **Act（実行）**: `is_valid = blog.valid?`
+  - `valid?`メソッドを明示的に呼び出し
+  - バリデーションを実行して結果を取得
+- **Assert（検証）**: `expect(is_valid).to be false`と`expect(blog.errors[:title]).to include("can't be blank")`
+  - アウトプットのテスト: `valid?`の返り値が`false`であることを確認
+  - 副作用の検証: `errors`に適切なエラーメッセージが設定されていることを確認
+
+#### Scopes（スコープ）の例
+
+```ruby
+RSpec.describe Blog, type: :model do
+  describe '.published' do
+    # Arrange（準備）
+    let!(:published_blog) { create(:blog, :published) }
+    let!(:unpublished_blog) { create(:blog, :unpublished) }
+
+    it 'returns only published blogs' do
+      # Act（実行）
+      result = Blog.published
+
+      # Assert（検証）
+      expect(result).to include(published_blog)
+      expect(result).not_to include(unpublished_blog)
+    end
+  end
+end
+```
+
+**AAAパターンの説明**
+- **Arrange（準備）**: `let!(:published_blog)`と`let!(:unpublished_blog)`
+  - 公開済みと未公開のブログをデータベースに作成
+  - `let!`を使用してテスト実行前に即座に作成
+- **Act（実行）**: `result = Blog.published`
+  - `published`スコープを実行して結果を取得
+- **Assert（検証）**: `expect(result).to include(published_blog)`と`expect(result).not_to include(unpublished_blog)`
+  - アウトプットのテスト: 期待されるブログが含まれ、期待されないブログが含まれないことを確認
+  - 副作用の検証: なし（データベースの状態を変更しない）
+
+#### Class Methods（クラスメソッド）の例
+
+```ruby
+RSpec.describe Blog, type: :model do
+  describe '.filter_by_title' do
+    context 'when title is provided' do
+      # Arrange（準備）
+      let!(:blog1) { create(:blog, title: 'Ruby on Rails') }
+      let!(:blog2) { create(:blog, title: 'JavaScript Basics') }
+      let!(:blog3) { create(:blog, title: 'Advanced Rails') }
+
+      it 'returns blogs with matching title' do
+        # Act（実行）
+        result = Blog.filter_by_title('Rails')
+
+        # Assert（検証）
+        expect(result).to include(blog1, blog3)
+        expect(result).not_to include(blog2)
+      end
+    end
+  end
+end
+```
+
+**AAAパターンの説明**
+- **Arrange（準備）**: `let!(:blog1)`、`let!(:blog2)`、`let!(:blog3)`
+  - 異なるタイトルを持つブログをデータベースに作成
+  - テストに必要なデータを事前に準備
+- **Act（実行）**: `result = Blog.filter_by_title('Rails')`
+  - `filter_by_title`メソッドを実行して結果を取得
+- **Assert（検証）**: `expect(result).to include(blog1, blog3)`と`expect(result).not_to include(blog2)`
+  - アウトプットのテスト: 期待されるブログが含まれ、期待されないブログが含まれないことを確認
+  - 副作用の検証: なし（データベースの状態を変更しない）
+
+### 5. テストコードを書き切る
+
+以下はBlogモデルのModels specの全体コード例です。
 ```ruby
 require 'rails_helper'
 
@@ -277,7 +470,7 @@ RSpec.describe Blog, type: :model do
 end
 ```
 
-### specの解説
+## specの解説(ここまでのまとめ)
 
 先ほど説明した「アウトプットのテスト」と「副作用の検証」の観点から、各テストを解説します。
 また、chapter3で説明したAAA（Arrange-Act-Assert）の観点からも整理します。
