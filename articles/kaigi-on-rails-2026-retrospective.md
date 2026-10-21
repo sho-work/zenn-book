@@ -3,7 +3,7 @@ title: "Kaigi on Rails 2026で登壇してきました！"
 emoji: "🎤"
 type: "idea"
 topics: ["kaigionrails", "rails", "登壇", "カンファレンス"]
-published: false
+published: true
 ---
 
 10月17日に開催されたKaigi on Rails 2026で、**「Railsで挑む大量データ永続化 〜600億件を永続化するための設計とボトルネックとの戦い〜」**というタイトルで登壇してきました！
